@@ -1,0 +1,15 @@
+﻿__pycache__/
+*.pyc
+*.pyo
+build/
+dist/
+dist_executavel/
+executavel/
+*.spec
+relatorios/
+token.json
+token_samea.json
+*.zip
+_dialogo_1.txt
+_dialogo_2.txt
+CONVERSA_COMPLETA*.md
