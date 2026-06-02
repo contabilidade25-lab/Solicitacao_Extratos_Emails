@@ -1408,6 +1408,12 @@ def main():
         print("⚠️  Nenhum cliente. Encerrando.")
         sys.exit(0)
 
+    # Sincroniza aba CLIENTES com ID, CLIENTE, E-MAIL
+    try:
+        atualizar_aba_clientes(creds, clientes)
+    except Exception as _e:
+        print(f"  ⚠️  Não foi possível atualizar aba CLIENTES: {_e}")
+
     # Mostra preview
     print("─"*60)
     for c in clientes[:5]:
@@ -1660,12 +1666,41 @@ def registrar_log_sheets(creds, inicio: str, entradas: list, aprovados: list, se
             f"[{inicio}] {len(sem_email)} cliente(s) sem e-mail cadastrado — não processados. Empresas: {nomes_sem}",
         ])
 
+    # 2 linhas em branco após cada execução para separar visualmente
+    linhas.append(["", "", "", "", "", "", "", ""])
+    linhas.append(["", "", "", "", "", "", "", ""])
+
     service.spreadsheets().values().append(
         spreadsheetId=PLANILHA_SITUACAO_ID,
         range=f"'{aba}'!A{proxima}",
         valueInputOption="USER_ENTERED",
         insertDataOption="INSERT_ROWS",
         body={"values": linhas},
+    ).execute()
+
+
+def atualizar_aba_clientes(creds, clientes: list):
+    """Sincroniza a aba CLIENTES com ID, CLIENTE, E-MAIL — sobrescreve a cada execução."""
+    service = build("sheets", "v4", credentials=creds)
+    aba = "CLIENTES"
+
+    cabecalho = [["ID", "CLIENTE", "E-MAIL"]]
+    rows = cabecalho + [
+        [c["linha_planilha"] - 1, c["nome"], c["email_destino"]]
+        for c in clientes
+    ]
+
+    # Limpa a aba antes de reescrever
+    service.spreadsheets().values().clear(
+        spreadsheetId=PLANILHA_SITUACAO_ID,
+        range=f"'{aba}'!A:C",
+    ).execute()
+
+    service.spreadsheets().values().update(
+        spreadsheetId=PLANILHA_SITUACAO_ID,
+        range=f"'{aba}'!A1",
+        valueInputOption="USER_ENTERED",
+        body={"values": rows},
     ).execute()
 
 
