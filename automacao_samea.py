@@ -328,12 +328,15 @@ def _tem_anexo(msg):
                 disp = hdrs.get("content-disposition", "")
                 mime = p.get("mimeType", "").lower()
 
-                # Arquivo embutido no corpo (assinatura/logo de qualquer formato):
-                # tem Content-ID (cid:...) OU Content-Disposition: inline
-                tem_cid    = "content-id" in hdrs
-                eh_inline  = disp.startswith("inline")
-                if tem_cid or eh_inline:
-                    pass  # ignora — é parte do corpo, não extrato
+                # Qualquer imagem é ignorada — extrato bancário nunca chega como imagem.
+                # Cobre: assinatura inline da Sâmea cotada na resposta (ATT00001.png),
+                # logo/assinatura do cliente, e imagens com ou sem Content-ID.
+                if mime.startswith("image/"):
+                    pass
+
+                # Arquivo embutido no corpo via CID ou inline explícito
+                elif "content-id" in hdrs or disp.startswith("inline"):
+                    pass
 
                 # Assinatura digital S/MIME (smime.p7s, etc.)
                 elif mime in _MIME_ASSINATURA_DIGITAL or _FILENAME_ASSINATURA_RE.match(filename):
